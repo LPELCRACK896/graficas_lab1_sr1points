@@ -27,7 +27,12 @@ glPoint(0, 0) cambia el color del punto en el centro del viewport, glPoint(1, 1)
 
 '''
 
-import struct #Esta libreria si la puedo
+#Bitmap info: http://www.ece.ualberta.ca/~elliott/ee552/studentAppNotes/2003_w/misc/bmp_file_format/bmp_file_format.htm
+
+import struct
+
+from numpy import byte
+from pyparsing import col #Esta libreria si la puedo
 
 # Variables con bytes limitado
 def char(c):
@@ -52,10 +57,70 @@ class Renderer(object):
 
         self.width = width
         self.height = height
-
         self.clearColor = color(0,0,0)
         self.currColor = color(1,1,1)
+        self.glViewport(0,0,self.width,self.height)
 
-        self.glViewport(0,0,self.width, self.height)
-        
+
         self.glClear()
+
+    def glViewport(self, posX, posY, width, height):
+        self.vpX = posX
+        self.vpY = posY
+        self.vpWidth = width
+        self.vpHeight = height
+
+    def glClearColor(self, r, g, b):
+        self.clearColor = color(r, g, b)
+    
+    def glCurrColor(self, r, g, b):
+        self.currColor = color(r, g, b)
+    
+    def glCreateWindow(self, width, height):
+        self.width = width
+        self.height = height
+        self.glClear()
+    
+    #Sustituida por la que funciona con el view port
+    def glPointP(self, x, y, clr= None):
+        if (0 <= x < self.width) and (0<= y < self.height):
+            self.pixels[x][y]=clr or self.currColor
+    def glClear(self):#Determinar el color de fondo, crear red de pixeles
+        self.pixels = [[self.clearColor for y in range(self.height)] for x in range(self.width)]
+    
+    def glClearViewport(self, clr = None): #window coordinates
+            for x in range(self.vpX,self.vpX + self.vpWidth):
+                for y in range(self.vpY,self.vpY + self.vpHeight):
+                    self.glPointP(x,y,clr)
+
+    def glPoint(self, ndcX,ndcY, clr=None): 
+        x=(ndcX+1)*(self.vpWidth/2)+self.vpX
+        y=(ndcY+1)*(self.vpHeight/2)+self.vpY
+        self.glPointP(int(x),int(y),clr)
+
+    def glFinish(self, fileName):#Crear imagen
+        with open (fileName, "wb") as file:
+            #Creacion de header >> Estructura necesaria para bitmap
+            #Header 2 bytes
+            file.write(bytes('B'.encode('ascii')))
+            file.write(bytes('M'.encode('ascii')))
+            file.write(dword(14 + 40 + (self.width * self.height * 3)))
+            file.write(dword(0))
+            file.write(dword(14 + 40))
+
+            #InfoHeader
+            file.write(dword(40))
+            file.write(dword(self.width))
+            file.write(dword(self.height))
+            file.write(word(1))
+            file.write(word(24))
+            file.write(dword(0))
+            file.write(dword(self.width * self.height * 3))
+            file.write(dword(0))
+            file.write(dword(0))
+            file.write(dword(0))
+            file.write(dword(0))
+            #Color table
+            for y in range(self.height):
+                for x in range(self.width):
+                    file.write(self.pixels[x][y])
