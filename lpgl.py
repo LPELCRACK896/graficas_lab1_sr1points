@@ -81,7 +81,7 @@ class Renderer(object):
         self.height = height
         self.glClear()
     
-    #Sustituida por la que funciona con el view port
+    #Sustituida por la que funciona con el view port / cambio de nombre
     def glPointP(self, x, y, clr= None):
         if (0 <= x < self.width) and (0<= y < self.height):
             self.pixels[x][y]=clr or self.currColor
