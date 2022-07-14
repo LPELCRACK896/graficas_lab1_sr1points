@@ -54,14 +54,11 @@ def color(r, g, b):
 
 class Renderer(object):
     def __init__(self, width, height):
-
         self.width = width
         self.height = height
         self.clearColor = color(0,0,0)
         self.currColor = color(1,1,1)
         self.glViewport(0,0,self.width,self.height)
-
-
         self.glClear()
 
     def glViewport(self, posX, posY, width, height):
@@ -85,6 +82,7 @@ class Renderer(object):
     def glPointP(self, x, y, clr= None):
         if (0 <= x < self.width) and (0<= y < self.height):
             self.pixels[x][y]=clr or self.currColor
+
     def glClear(self):#Determinar el color de fondo, crear red de pixeles
         self.pixels = [[self.clearColor for y in range(self.height)] for x in range(self.width)]
     
